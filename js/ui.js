@@ -13,6 +13,7 @@ class UIManager {
    */
   constructor() {
     this.elements = {};
+    this.speedometer = null;
     this.state = {
       isAnalyzing: false,
       hasAnalysis: false,
@@ -33,6 +34,17 @@ class UIManager {
         console.warn(`Element with id "${id}" not found`);
       }
     });
+
+    // Initialize speedometer gauge
+    try {
+      this.speedometer = new SpeedometerGauge('speedometerContainer', {
+        size: 200,
+        maxScore: 100,
+        animated: true
+      });
+    } catch (error) {
+      console.warn('Speedometer initialization failed:', error);
+    }
   }
 
   /**
@@ -103,8 +115,7 @@ class UIManager {
     const scoreElements = {
       internalScore: scores.internal,
       externalScore: scores.external,
-      assetScore: scores.asset,
-      totalScore: scores.total
+      assetScore: scores.asset
     };
 
     Object.keys(scoreElements).forEach(key => {
@@ -112,6 +123,11 @@ class UIManager {
         this.elements[key].textContent = scoreElements[key];
       }
     });
+
+    // Animate speedometer to total score
+    if (this.speedometer) {
+      this.speedometer.animate(scores.total, 1200);
+    }
   }
 
   /**
@@ -359,11 +375,16 @@ class UIManager {
     };
 
     // Reset scores
-    ['internalScore', 'externalScore', 'assetScore', 'totalScore'].forEach(key => {
+    ['internalScore', 'externalScore', 'assetScore'].forEach(key => {
       if (this.elements[key]) {
         this.elements[key].textContent = '—';
       }
     });
+
+    // Reset speedometer
+    if (this.speedometer) {
+      this.speedometer.setScore(0);
+    }
 
     // Reset risk badge
     if (this.elements.riskBadge) {
